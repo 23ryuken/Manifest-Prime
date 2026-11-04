@@ -121,3 +121,23 @@ export async function login(req, res) {
     return res.status(500).json({ message: 'Something went wrong' });
   }
 }
+
+export async function me(req, res) {
+  try {
+    // req.userId is set by the requireAuth middleware
+    const user = await User.findById(req.userId);
+
+    // Token was valid but the user no longer exists -> treat as signed out
+    if (!user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    // Send only the fields the contract allows (no hash)
+    return res.status(200).json({
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (error) {
+    console.error('Fetching user failed:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+}
