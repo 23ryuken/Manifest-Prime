@@ -15,6 +15,11 @@ function toItem(item) {
   };
 }
 
+// One query: exists + is mine + is a collection (the id must already be valid)
+function findOwnedFolder(owner, id) {
+  return Item.findOne({ _id: id, owner, type: 'folder' });
+}
+
 export async function createFolder(req, res) {
   try {
     // Read the body safely (it can be undefined if no JSON was sent)
@@ -38,12 +43,7 @@ export async function createFolder(req, res) {
         return res.status(400).json({ message: 'Parent is not a valid id' });
       }
 
-      // One query: exists + is mine + is a collection
-      const parentItem = await Item.findOne({
-        _id: parent,
-        owner: req.userId,
-        type: 'folder',
-      });
+      const parentItem = await findOwnedFolder(req.userId, parent);
 
       // Same 404 for every failure, so nothing leaks about other users' items
       if (!parentItem) {
@@ -70,6 +70,39 @@ export async function createFolder(req, res) {
       });
     }
     console.error('Create collection failed:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+}
+
+export async function listItems(req, res) {
+  try {
+    // Query string values are text, but can also be arrays (?parent=a&parent=b)
+    const { parent } = req.query;
+
+    // No parent in the URL means top level (null in the database)
+    let parentId = null;
+    if (parent !== undefined) {
+      if (typeof parent !== 'string' || !mongoose.isValidObjectId(parent)) {
+        return res.status(400).json({ message: 'Parent is not a valid id' });
+      }
+
+      const parentFolder = await findOwnedFolder(req.userId, parent);
+
+      // Same 404 for every failure, so nothing leaks about other users' items
+      if (!parentFolder) {
+        return res.status(404).json({ message: 'Collection not found' });
+      }
+
+      parentId = parentFolder._id;
+    }
+
+    const items = await Item.find({ owner: req.userId, parent: parentId })
+      .sort({ type: -1, name: 1 })
+      .collation({ locale: 'en', strength: 2 });
+
+    return res.status(200).json({ items: items.map(toItem) });
+  } catch (error) {
+    console.error('List items failed:', error);
     return res.status(500).json({ message: 'Something went wrong' });
   }
 }
