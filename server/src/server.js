@@ -1,4 +1,7 @@
 import express from 'express';
+import 'dotenv/config';
+import { connectDB } from './config/db.js';
+
 
 const app = express();
 
@@ -13,6 +16,8 @@ app.get('/api/health', (req, res) => {
 app.post('/api/echo', (req, res) => {
   res.json({ received: req.body });
 });
+
+await connectDB();
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
