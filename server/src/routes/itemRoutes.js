@@ -4,6 +4,8 @@ import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = express.Router();
 
-router.post('/folder', requireAuth, createFolder);
+router.use(requireAuth);
+
+router.post('/folder', createFolder);
 
 export default router;
