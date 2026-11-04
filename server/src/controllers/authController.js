@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
-
+import jwt from 'jsonwebtoken';
 export async function register(req, res) {
   try {
     // Read the body safely (it can be undefined if no JSON was sent)
@@ -66,6 +66,58 @@ export async function register(req, res) {
       return res.status(409).json({ message: 'Email is already registered' });
     }
     console.error('Register failed:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
+}
+
+export async function login(req, res) {
+  try {
+    // Read the body safely (it can be undefined if no JSON was sent)
+    const { email, password } = req.body || {};
+
+    // Check types first
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res
+        .status(400)
+        .json({ message: 'Email and password must be text' });
+    }
+
+    // Same cleaning as register, so the lookup matches the saved email
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      return res
+        .status(400)
+        .json({ message: 'Please provide email and password' });
+    }
+
+    // passwordHash is hidden by default (select: false), so ask for it
+    const user = await User.findOne({ email: cleanEmail }).select(
+      '+passwordHash'
+    );
+
+    // Same message for "no such user" and "wrong password"
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // The token holds only the user id, signed with our secret
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d',
+    });
+
+    // Send only the fields the contract allows (no hash)
+    return res.status(200).json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (error) {
+    console.error('Login failed:', error);
     return res.status(500).json({ message: 'Something went wrong' });
   }
 }
