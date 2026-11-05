@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import itemRoutes from './routes/itemRoutes.js';
+import { ensureUploadDir } from "./services/storage.service.js"
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.post('/api/echo', (req, res) => {
 });
 
 await connectDB();
+await ensureUploadDir();
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
