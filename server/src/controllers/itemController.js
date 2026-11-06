@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Item from '../models/Item.js';
+import { removeStored } from '../services/storage.service.js';
 
 // Build the object we send to the client (no owner, no storageKey)
 function toItem(item) {
@@ -15,6 +16,8 @@ function toItem(item) {
   };
 }
 
+// Shared name rules, so create, rename and upload can never disagree.
+// Returns { value } when the name is fine, or { message } when it is not.
 function cleanItemName(name) {
   if (typeof name !== 'string') {
     return { message: 'Name must be text' };
@@ -33,6 +36,7 @@ function cleanItemName(name) {
 function findOwnedFolder(owner, id) {
   return Item.findOne({ _id: id, owner, type: 'folder' });
 }
+
 
 async function isAncestorOrSelf(owner, itemId, startId) {
   let current = startId;
@@ -174,7 +178,8 @@ export async function updateItem(req, res) {
           return res.status(404).json({ message: 'Collection not found' });
         }
 
-      
+        // Only collections can contain things, so only they can form a loop.
+        // Climb from the DESTINATION, looking for the item we are moving.
         if (
           item.type === 'folder' &&
           (await isAncestorOrSelf(req.userId, item._id, target._id))
@@ -249,5 +254,81 @@ export async function deleteItem(req, res) {
   } catch (error) {
     console.error('Delete item failed:', error);
     return res.status(500).json({ message: 'Something went wrong' });
+  }
+}
+
+export async function uploadFile(req, res) {
+  // Multer found no file, so nothing was written and there is nothing to clean up
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file was uploaded' });
+  }
+
+  // From here on the bytes are on disk. Remember their name,
+  // and keep them only if the database save succeeds.
+  const storageKey = req.file.filename;
+  let saved = false;
+
+  try {
+    // Multer text parts (like parent) are in req.body
+    const { parent } = req.body || {};
+
+    // Multer reads the filename as latin1; repair it to utf8 (café, résumé)
+    const originalName = Buffer.from(req.file.originalname, 'latin1').toString(
+      'utf8'
+    );
+    const cleaned = cleanItemName(originalName);
+    if (cleaned.message) {
+      return res.status(400).json({ message: cleaned.message });
+    }
+
+    // parent is optional: missing means top level
+    let parentId = null;
+    if (parent !== undefined && parent !== null) {
+      if (!mongoose.isValidObjectId(parent)) {
+        return res.status(400).json({ message: 'Parent is not a valid id' });
+      }
+
+      const parentFolder = await findOwnedFolder(req.userId, parent);
+
+      // Same 404 for every failure, so nothing leaks about other users' items
+      if (!parentFolder) {
+        return res.status(404).json({ message: 'Collection not found' });
+      }
+
+      parentId = parentFolder._id;
+    }
+
+    // The owner comes from the token. size is counted by multer,
+    // mimeType is only what the client claims, so we store it for display.
+    const item = await Item.create({
+      owner: req.userId,
+      name: cleaned.value,
+      type: 'file',
+      parent: parentId,
+      size: req.file.size,
+      mimeType: req.file.mimetype,
+      storageKey,
+    });
+
+    saved = true;
+    return res.status(201).json({ item: toItem(item) });
+  } catch (error) {
+    // The unique index (owner + parent + name) rejected a duplicate name
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: 'An item with this name already exists here',
+      });
+    }
+    console.error('Upload file failed:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  } finally {
+    // Runs after EVERY return above. Not saved = remove the bytes.
+    if (!saved) {
+      try {
+        await removeStored(storageKey);
+      } catch (cleanupError) {
+        console.error('Could not remove uploaded bytes:', cleanupError);
+      }
+    }
   }
 }
