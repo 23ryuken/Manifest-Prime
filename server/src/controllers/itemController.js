@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Item from '../models/Item.js';
-import { removeStored } from '../services/storage.service.js';
+import { pathFor, removeStored } from '../services/storage.service.js';
 
 // Build the object we send to the client (no owner, no storageKey)
 function toItem(item) {
@@ -330,5 +330,42 @@ export async function uploadFile(req, res) {
         console.error('Could not remove uploaded bytes:', cleanupError);
       }
     }
+  }
+}
+
+export async function downloadItem(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid item id' });
+    }
+
+    // Owner in the query, only files, and ask for the hidden storageKey on purpose
+    const item = await Item.findOne({
+      _id: id,
+      owner: req.userId,
+      type: 'file',
+    }).select('+storageKey');
+
+    // Same 404 for missing, not yours, and "is a collection"
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    // The path comes from the storage key; the name is only the suggested filename
+    return res.download(pathFor(item.storageKey), item.name, (error) => {
+      if (!error) {
+        return;
+      }
+      console.error('Download failed:', error.code);
+      // If the response already started, we can only log
+      if (!res.headersSent) {
+        res.status(404).json({ message: 'File not found' });
+      }
+    });
+  } catch (error) {
+    console.error('Download item failed:', error);
+    return res.status(500).json({ message: 'Something went wrong' });
   }
 }
