@@ -251,18 +251,13 @@ export async function deleteItem(req, res) {
         .map((child) => child._id);
     }
 
-  
     for (let i = levels.length - 1; i >= 0; i--) {
-      await Item.deleteMany({ owner: req.userId, _id: { $in: levels[i] } });
-
       for (const key of keysByLevel[i]) {
-        try {
-          await removeStored(key);
-        } catch (error) {
-          // The record is already gone, so a leftover file must not make this a 500
-          console.error('Could not remove stored bytes:', error.message);
-        }
+        await removeStored(key);
       }
+
+      // Keep the database records if storage cleanup fails so deletion can be retried.
+      await Item.deleteMany({ owner: req.userId, _id: { $in: levels[i] } });
     }
 
     // Nothing to send back
