@@ -217,13 +217,16 @@ export async function deleteItem(req, res) {
       return res.status(400).json({ message: 'Invalid item id' });
     }
 
-    // Owner in the query: someone else's item looks like a missing one
-    const item = await Item.findOne({ _id: id, owner: req.userId });
+    // Owner in the query, and ask for the hidden storageKey (it may be a file)
+    const item = await Item.findOne({ _id: id, owner: req.userId }).select(
+      '+storageKey'
+    );
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
     const levels = [[item._id]];
+    const keysByLevel = [item.type === 'file' ? [item.storageKey] : []];
     let folderIds = item.type === 'folder' ? [item._id] : [];
 
     // Walk DOWN one level per query (limit: bad data can never hang us)
@@ -231,22 +234,35 @@ export async function deleteItem(req, res) {
       const children = await Item.find({
         owner: req.userId,
         parent: { $in: folderIds },
-      }).select('type');
+      }).select('type +storageKey');
 
       if (children.length === 0) {
         break;
       }
 
       levels.push(children.map((child) => child._id));
+      keysByLevel.push(
+        children
+          .filter((child) => child.type === 'file')
+          .map((child) => child.storageKey)
+      );
       folderIds = children
         .filter((child) => child.type === 'folder')
         .map((child) => child._id);
     }
 
-    // Delete the DEEPEST level first. If this stops halfway, what is left
-    // is a smaller tree that is still reachable, never invisible orphans.
+  
     for (let i = levels.length - 1; i >= 0; i--) {
       await Item.deleteMany({ owner: req.userId, _id: { $in: levels[i] } });
+
+      for (const key of keysByLevel[i]) {
+        try {
+          await removeStored(key);
+        } catch (error) {
+          // The record is already gone, so a leftover file must not make this a 500
+          console.error('Could not remove stored bytes:', error.message);
+        }
+      }
     }
 
     // Nothing to send back
