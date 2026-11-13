@@ -1,7 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4002';
 const TOKEN_KEY = 'manifest_token';
-
-
 export class ApiError extends Error {
   constructor(status, message) {
     super(message);
@@ -81,7 +79,7 @@ export async function request(path, options) {
   return res.json();
 }
 
-
+// For files: fetch with the token, then save the bytes under the given name.
 export async function downloadBlob(path, filename) {
   const res = await send(path);
   const blob = await res.blob();
