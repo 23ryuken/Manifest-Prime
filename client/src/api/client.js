@@ -1,7 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4002';
 const TOKEN_KEY = 'manifest_token';
-
-
 export class ApiError extends Error {
   constructor(status, message) {
     super(message);
@@ -60,7 +58,7 @@ async function send(path, { method = 'GET', json, body } = {}) {
     const message = data?.message || 'Request failed';
 
     // Only a request that carried a token can mean "your session ended"
-    if (res.status === 401 && token && tokenStore.get() === token) {
+    if (res.status === 401 && token) {
       tokenStore.clear();
       if (onUnauthorized) {
         onUnauthorized();
@@ -81,7 +79,7 @@ export async function request(path, options) {
   return res.json();
 }
 
-
+// For files: fetch with the token, then save the bytes under the given name.
 export async function downloadBlob(path, filename) {
   const res = await send(path);
   const blob = await res.blob();
