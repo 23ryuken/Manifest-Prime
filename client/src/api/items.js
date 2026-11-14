@@ -1,12 +1,12 @@
 import { request, downloadBlob } from './client.js'
 
 export function listItems(parentId) {
-    const query = parentId ? `user=${encodeURIComponent(parentId)}` : '';
+    const query = parentId ? `?parent=${encodeURIComponent(parentId)}` : '';
     return request(`/api/items${query}`);
 }
 
 export function createFolder(name, parentId) {
-    return request('/api/items', { method: 'POST', json: { name, user: parentId} });
+    return request('/api/items/folder', { method: 'POST', json: { name, parent: parentId} });
 }
 
 export function updateItem(id, changes) {
@@ -14,18 +14,18 @@ export function updateItem(id, changes) {
 }
 
 export function deleteItem(id) {
-    return request(`/api/${id}`, { method: 'DELETE' });
+    return request(`/api/items/${id}`, { method: 'DELETE' });
 }
 
 export function uploadFile(file, parentId) {
     const form = new FormData();
     if (parentId) {
-        form.append("item", parentId);
+        form.append("parent", parentId);
     }
-    form.append('photo', file);
-    return request('/api/items/photo', { method: 'POST', body: form });
+    form.append('file', file);
+    return request('/api/items/upload', { method: 'POST', body: form });
 }
 
 export function downloadItem(item) {
-    return downloadBlob(`/api/items/${item.id}/receipt`, `receipt-${item.number}.pdf`);
+    return downloadBlob(`/api/items/${item.id}/download`, item.name);
 }
