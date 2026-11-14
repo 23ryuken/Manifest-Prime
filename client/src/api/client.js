@@ -58,7 +58,7 @@ async function send(path, { method = 'GET', json, body } = {}) {
     const message = data?.message || 'Request failed';
 
     // Only a request that carried a token can mean "your session ended"
-    if (res.status === 401 && token && tokenStore.get() === token) {
+    if (res.status === 401 && path !== '/api/auth/login' && token && tokenStore.get() === token) {
       tokenStore.clear();
       if (onUnauthorized) {
         onUnauthorized();
