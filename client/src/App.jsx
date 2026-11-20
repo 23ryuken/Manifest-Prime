@@ -1,18 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./auth/ProtectedRoute.jsx";
+import LibraryPage from "./pages/LibraryPage.jsx";
+import SignInPage from "./pages/SignInPage.jsx";
+import SignUpPage from "./pages/SignUpPage.jsx";
 import { paths } from "./path.js";
-
-function SignInPage() {
-  return <main><h1>Sign in</h1></main>;
-}
-
-function SignUpPage() {
-  return <main><h1>Sign up</h1></main>;
-}
-
-function LibraryPage() {
-  return <main><h1>Library</h1></main>;
-}
 
 function App() {
   return (
