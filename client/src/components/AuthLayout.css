@@ -22,13 +22,13 @@
   align-items: center;
   gap: 5px;
   color: #f8f9f8;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
 }
 
 .auth-brand-mark {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: -1px;
 }
@@ -72,7 +72,7 @@
 }
 
 .delivery-card-meta {
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: 0.035em;
   text-transform: uppercase;
 }
@@ -80,14 +80,14 @@
 .delivery-card-header h2 {
   margin: 11px 0 6px;
   color: #252b2c;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
 }
 
 .delivery-card-header p {
   color: #899197;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .delivery-record-heading {
@@ -95,7 +95,7 @@
   padding: 0 15px;
   color: #3a4040;
   background: #f4f3f0;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 500;
 }
 
@@ -120,7 +120,7 @@
 }
 
 .delivery-item-index {
-  font-size: 7px;
+  font-size: 8px;
 }
 
 .delivery-item-copy {
@@ -132,14 +132,14 @@
 .delivery-item-copy strong {
   overflow: hidden;
   color: #303637;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .delivery-item-copy > span {
-  font-size: 7px;
+  font-size: 8px;
 }
 
 .delivery-item-status {
@@ -147,7 +147,7 @@
   align-items: center;
   gap: 7px;
   color: #15533f;
-  font-size: 8px;
+  font-size: 9px;
   white-space: nowrap;
 }
 
@@ -174,7 +174,7 @@
 .delivery-card-footer {
   min-height: 36px;
   padding: 0 15px;
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -185,14 +185,14 @@
 
 .auth-showcase-caption {
   color: #f4f5f4;
-  font-size: 8px;
+  font-size: 9px;
   text-align: center;
 }
 
 .auth-visual-footer {
   color: #f4f5f4;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .auth-panel {
@@ -212,7 +212,7 @@
   margin: 0 0 4px;
   color: #818a90;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.035em;
   text-transform: uppercase;
 }
@@ -220,7 +220,7 @@
 .auth-title {
   margin: 0;
   color: #1b2223;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.25;
@@ -229,7 +229,7 @@
 .auth-subtitle {
   margin: 5px 0 24px;
   color: #7d878d;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -242,7 +242,7 @@
   display: grid;
   gap: 6px;
   color: #272e30;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
 }
 
@@ -255,7 +255,7 @@
   outline: none;
   color: #252b2c;
   background: #fff;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 400;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
@@ -286,7 +286,7 @@
   color: #293031;
   background: transparent;
   cursor: pointer;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 500;
 }
 
@@ -305,7 +305,7 @@
 .auth-field-help {
   margin: -1px 0 0;
   color: #7d878d;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 400;
 }
 
@@ -331,7 +331,7 @@
   color: #fff;
   background: #15533f;
   cursor: pointer;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   transition: background-color 120ms ease, opacity 120ms ease;
 }
@@ -353,14 +353,14 @@
 .auth-error {
   margin: -4px 0 0;
   color: #a33030;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
 .auth-switch {
   margin: 16px 0 0;
   color: #737d82;
-  font-size: 8px;
+  font-size: 9px;
   text-align: center;
 }
 
@@ -394,7 +394,7 @@
 
   .auth-visual-footer {
     margin: 0;
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .auth-panel {
